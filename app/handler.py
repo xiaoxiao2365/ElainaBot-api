@@ -8,11 +8,12 @@ import time
 import asyncio
 from datetime import datetime
 import aiohttp
-from core.plugin.decorators import handler
+from core.plugin.decorators import handler, on_load
 from core.plugin.context import ctx
 from core.base.logger import get_logger, PLUGIN
 
 log = get_logger(PLUGIN, "API调用器")
+_test_watcher_task = None
 
 # ==================== 配置管理 ====================
 
@@ -356,7 +357,14 @@ async def _execute_api(api_cfg, user_input='', extra_vars=None, event=None):
     # 应用响应规则
     rules = api_cfg.get('rules', [])
     for rule in rules:
-        if _evaluate_rule(rule, variables, data):
+        # 确定规则使用哪个步骤的响应数据
+        step_source = rule.get('step_source', -1)
+        if isinstance(step_source, int) and 0 <= step_source < len(steps_log):
+            rule_data = steps_log[step_source].get('response', {})
+        else:
+            rule_data = data  # 默认使用最后一步
+
+        if _evaluate_rule(rule, variables, rule_data):
             template = rule.get('template', '')
             if rule.get('ignore', False):
                 return True, None, variables, steps_log  # 不回复
@@ -376,7 +384,6 @@ def _evaluate_rule(rule, variables, last_response):
     if not condition:
         return True  # 无条件 = 默认匹配
 
-    field = rule.get('field', '')
     try:
         # 构建安全的评估上下文
         eval_ctx = {
@@ -493,3 +500,89 @@ async def dynamic_trigger(event, match):
         if reply:
             await event.reply(reply)
         return  # 匹配到第一个即停止
+
+
+# ==================== 测试代理 (供Web面板使用) ====================
+
+def _test_request_path():
+    return ctx.get_data_path('test_request.json')
+
+def _test_result_path():
+    return ctx.get_data_path('test_result.json')
+
+
+async def _process_test_request():
+    """处理一次测试请求"""
+    req_path = _test_request_path()
+    res_path = _test_result_path()
+    if not os.path.isfile(req_path):
+        return
+    try:
+        with open(req_path, 'r', encoding='utf-8') as f:
+            req = json.load(f)
+        os.remove(req_path)
+    except Exception:
+        return
+
+    api_cfg = req.get('api_cfg', {})
+    user_input = req.get('user_input', '')
+    log.info(f"[测试代理] 执行测试, 输入: {user_input}")
+
+    try:
+        success, reply, variables, steps_log = await _execute_api(api_cfg, user_input)
+
+        # 整理每步的响应数据
+        steps_detail = []
+        for s in steps_log:
+            resp_data = s.get('response', {})
+            resp_str = json.dumps(resp_data, ensure_ascii=False)
+            if len(resp_str) > 5000:
+                resp_str = resp_str[:5000] + '...'
+            steps_detail.append({
+                'name': s.get('name', ''),
+                'method': s.get('method', ''),
+                'url': s.get('url', ''),
+                'http_code': s.get('http_code', 0),
+                'error': s.get('error'),
+                'response_raw': resp_str,
+                'response': resp_data,
+            })
+
+        result = {
+            'success': success,
+            'reply': reply or '',
+            'variables': {k: str(v) if v is not None else '' for k, v in variables.items()
+                          if not k.startswith('_')},
+            'steps': steps_detail,
+            'ts': int(time.time()),
+        }
+    except Exception as e:
+        result = {
+            'success': False,
+            'reply': '',
+            'error': str(e),
+            'variables': {},
+            'steps': [],
+            'ts': int(time.time()),
+        }
+
+    with open(res_path, 'w', encoding='utf-8') as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+    log.info(f"[测试代理] 测试完成, 成功: {result['success']}")
+
+
+async def _test_watcher_loop():
+    """后台循环检查测试请求文件"""
+    while True:
+        try:
+            await _process_test_request()
+        except Exception as e:
+            log.debug(f"[测试代理] 错误: {e}")
+        await asyncio.sleep(0.5)
+
+
+@on_load
+async def _start_test_watcher():
+    global _test_watcher_task
+    _test_watcher_task = asyncio.create_task(_test_watcher_loop())
+    log.info("[测试代理] 已启动")

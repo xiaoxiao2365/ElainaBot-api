@@ -17,12 +17,41 @@
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
-         background:var(--bg); color:var(--text); padding:24px; line-height:1.6; }
+         background:var(--bg); color:var(--text); line-height:1.6; margin:0; overflow:hidden; height:100vh; }
 
-  /* 布局 */
+  /* 侧边栏布局 */
+  .app-layout { display:flex; height:100vh; }
+  .sidebar { width:190px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; }
+  .sidebar-title { padding:18px 16px 12px; font-size:17px; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+  .sidebar-nav { flex:1; padding:8px; }
+  .sidebar-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:var(--radius-sm); cursor:pointer; font-size:14px; color:var(--text2); transition:all .2s; margin-bottom:2px; }
+  .sidebar-item:hover { background:var(--primary-bg); color:var(--text); }
+  .sidebar-item.active { background:var(--primary-bg); color:var(--primary); font-weight:600; }
+  .main-content { flex:1; overflow-y:auto; padding:24px; }
+  .page-view { display:none; }
+  .page-view.active { display:block; }
+
+  /* 折叠卡片 */
+  .collapse-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:10px; overflow:hidden; }
+  .collapse-header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; user-select:none; }
+  .collapse-header:hover { background:rgba(124,138,255,.06); }
+  .collapse-arrow { transition:transform .2s; font-size:12px; color:var(--text3); }
+  .collapse-card.open .collapse-arrow { transform:rotate(90deg); }
+  .collapse-body { display:none; padding:0 14px 14px; }
+  .collapse-card.open .collapse-body { display:block; }
+
+  /* 自动提取面板 */
+  .extract-panel { background:var(--surface2); border:1px solid var(--primary); border-radius:var(--radius-sm); padding:14px; margin-top:12px; }
+  .extract-panel h4 { font-size:13px; color:var(--primary); margin-bottom:8px; }
+  .extract-tree { max-height:250px; overflow-y:auto; }
+  .extract-item { display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12px; }
+  .extract-item label { cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; }
+  .extract-item code { color:var(--primary); background:var(--primary-bg); padding:1px 5px; border-radius:3px; }
+  .extract-item .val { color:var(--text3); max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  /* 头部 */
   .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
-  .header h1 { font-size:22px; color:var(--primary); display:flex; align-items:center; gap:8px; }
-  .header h1 .icon { font-size:26px; }
+  .header h2 { font-size:20px; color:var(--primary); display:flex; align-items:center; gap:8px; }
   .header .desc { font-size:13px; color:var(--text2); margin-top:2px; }
 
   /* 按钮 */
@@ -77,17 +106,9 @@
   .api-item-meta { display:flex; gap:12px; font-size:11px; color:var(--text3); margin-top:6px; flex-wrap:wrap; }
   .api-item-meta span { display:flex; align-items:center; gap:3px; }
 
-  /* 步骤 */
-  .step-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm);
-               padding:14px; margin-bottom:10px; position:relative; }
-  .step-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
   .step-num { font-size:12px; font-weight:700; color:var(--primary); background:var(--primary-bg);
-              width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+              width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .step-connector { width:2px; height:12px; background:var(--border); margin:0 auto; }
-
-  /* 规则 */
-  .rule-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm);
-               padding:12px; margin-bottom:8px; }
 
   /* KV编辑器 */
   .kv-editor { display:flex; flex-direction:column; gap:6px; }
@@ -159,9 +180,6 @@
   .tab-content.active { display:block; }
 
   /* 日志 */
-  .log-section { margin-top:32px; }
-  .log-section .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
-  .log-section .section-title { font-size:18px; font-weight:600; color:var(--primary); display:flex; align-items:center; gap:8px; }
   .log-entry { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px;
                margin-bottom:8px; transition:border-color .2s; cursor:pointer; }
   .log-entry:hover { border-color:var(--border-hover); }
@@ -184,8 +202,11 @@
                                            border-radius:var(--radius-sm); color:var(--text); font-size:12px; }
   .log-count { font-size:12px; color:var(--text3); }
 
-  @media (max-width:600px) {
-    body { padding:12px; }
+  @media (max-width:700px) {
+    .sidebar { width:52px; }
+    .sidebar-item span:not(.icon) { display:none; }
+    .sidebar-title span:last-child { display:none; }
+    .main-content { padding:12px; }
     .modal { padding:16px; }
     .inline { flex-direction:column; }
     .inline > .narrow { flex:1; }
@@ -194,55 +215,61 @@
 </head>
 <body>
 
-<!-- ==================== 主界面 ==================== -->
-<div id="app">
-  <div class="header">
-    <div>
-      <h1><span class="icon">🔌</span> API调用器</h1>
-      <div class="desc">可视化配置API调用，支持链式请求与条件响应解析</div>
-    </div>
-    <div class="btn-group">
-      <button class="btn btn-primary" onclick="openAddModal()">＋ 新建API</button>
-      <button class="btn" onclick="loadApis()">↻ 刷新</button>
-      <button class="btn" onclick="showImportExport()">⇄ 导入/导出</button>
+<!-- ==================== 侧边栏布局 ==================== -->
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sidebar-title"><span>🔌</span> <span>API调用器</span></div>
+    <div class="sidebar-nav">
+      <div class="sidebar-item active" onclick="switchPage('manager')"><span class="icon">⚙️</span> <span>API管理</span></div>
+      <div class="sidebar-item" onclick="switchPage('logs')"><span class="icon">📋</span> <span>调用日志</span></div>
     </div>
   </div>
+  <div class="main-content">
 
-  <div id="apiList" class="api-list">
-    <div class="empty">
-      <span class="icon">📡</span>
-      <p>正在加载API配置...</p>
-    </div>
-  </div>
-
-  <!-- 调用日志 -->
-  <div class="log-section">
-    <div class="section-header">
-      <div class="section-title">📋 调用日志</div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <div class="log-filter">
-          <select id="logFilterApi" onchange="renderLogs()">
-            <option value="">全部API</option>
-          </select>
-          <select id="logFilterStatus" onchange="renderLogs()">
-            <option value="">全部状态</option>
-            <option value="success">成功</option>
-            <option value="fail">失败</option>
-          </select>
+    <!-- ===== 管理器页 ===== -->
+    <div class="page-view active" id="page-manager">
+      <div class="header">
+        <div>
+          <h2>⚙️ API管理</h2>
+          <div class="desc">可视化配置API调用，支持链式请求与条件响应解析</div>
         </div>
-        <span class="log-count" id="logCount"></span>
-        <button class="btn btn-sm" onclick="loadLogs()">↻ 刷新</button>
-        <button class="btn btn-sm btn-danger" onclick="clearAllLogs()">🗑 清除全部</button>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="openAddModal()">＋ 新建API</button>
+          <button class="btn" onclick="loadApis()">↻ 刷新</button>
+          <button class="btn" onclick="showImportExport()">⇄ 导入/导出</button>
+        </div>
+      </div>
+      <div id="apiList" class="api-list">
+        <div class="empty"><span class="icon">📡</span><p>正在加载API配置...</p></div>
       </div>
     </div>
-    <div id="logList">
-      <div class="empty" style="padding:20px"><p style="font-size:13px">正在加载日志...</p></div>
+
+    <!-- ===== 日志页 ===== -->
+    <div class="page-view" id="page-logs">
+      <div class="header">
+        <div><h2>📋 调用日志</h2><div class="desc">查看API调用记录与返回数据</div></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="log-filter">
+            <select id="logFilterApi" onchange="renderLogs()"><option value="">全部API</option></select>
+            <select id="logFilterStatus" onchange="renderLogs()">
+              <option value="">全部状态</option><option value="success">成功</option><option value="fail">失败</option>
+            </select>
+          </div>
+          <span class="log-count" id="logCount"></span>
+          <button class="btn btn-sm" onclick="loadLogs()">↻ 刷新</button>
+          <button class="btn btn-sm btn-danger" onclick="clearAllLogs()">🗑 清除全部</button>
+        </div>
+      </div>
+      <div id="logList">
+        <div class="empty" style="padding:20px"><p style="font-size:13px">正在加载日志...</p></div>
+      </div>
     </div>
+
   </div>
 </div>
 
 <!-- ==================== 编辑模态 ==================== -->
-<div id="editModal" class="modal-overlay" style="display:none" onclick="event.target===this&&closeModal()">
+<div id="editModal" class="modal-overlay" style="display:none">
   <div class="modal">
     <div class="modal-title" id="modalTitle">✏️ 编辑API</div>
 
@@ -338,7 +365,7 @@
     <div class="tab-content" id="tab-rules">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-size:13px;color:var(--text2)">
-          从上到下匹配，第一个满足条件的规则生效
+          从上到下匹配，第一个满足条件的规则生效。可选择基于哪个步骤的返回数据判断。
         </div>
         <button class="btn btn-sm btn-success" onclick="addRule()">＋ 添加规则</button>
       </div>
@@ -361,8 +388,21 @@
             <input type="text" id="testInput" placeholder="输入测试参数">
             <button class="btn btn-primary" onclick="runTest()" style="flex-shrink:0">▶ 执行测试</button>
           </div>
+          <div class="form-hint" style="margin-top:6px">测试通过后端代理执行，不受浏览器跨域限制</div>
         </div>
         <div id="testResult" class="test-result" style="display:none"></div>
+        <div id="extractPanel" class="extract-panel" style="display:none">
+          <h4>📤 自动提取 — 选择要提取的字段（可多选），将自动填入对应步骤的数据提取配置</h4>
+          <div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <label class="form-label" style="margin:0;flex-shrink:0">目标步骤:</label>
+            <select id="extractTargetStep" style="width:auto;min-width:150px"></select>
+          </div>
+          <div id="extractTree" class="extract-tree"></div>
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <button class="btn btn-sm btn-primary" onclick="applyExtract()">✅ 应用选中项</button>
+            <span id="extractCount" style="font-size:11px;color:var(--text3);line-height:28px"></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -374,7 +414,7 @@
 </div>
 
 <!-- ==================== 导入导出模态 ==================== -->
-<div id="ieModal" class="modal-overlay" style="display:none" onclick="event.target===this&&closeIEModal()">
+<div id="ieModal" class="modal-overlay" style="display:none">
   <div class="modal" style="max-width:600px">
     <div class="modal-title">⇄ 导入/导出配置</div>
     <div class="form-group">
@@ -395,6 +435,16 @@ let allApis = {};
 let editingName = null; // null=新建, string=编辑
 let currentSteps = [];
 let currentRules = [];
+let testStepResponses = []; // 测试时每个步骤的响应数据
+
+// ==================== 侧边栏切换 ====================
+function switchPage(page) {
+  document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (page === 'logs') loadLogs();
+}
 
 // ==================== 配置读写 ====================
 // 通过 Web 面板已有的 config-file API 读写插件 data/config.yaml
@@ -517,6 +567,8 @@ function openAddModal() {
   renderRules();
   switchTab(document.querySelector('[data-tab="basic"]'));
   document.getElementById('testResult').style.display = 'none';
+  document.getElementById('extractPanel').style.display = 'none';
+  testStepResponses = [];
   document.getElementById('editModal').style.display = 'flex';
 }
 
@@ -537,6 +589,8 @@ function openEditModal(name) {
   renderRules();
   switchTab(document.querySelector('[data-tab="basic"]'));
   document.getElementById('testResult').style.display = 'none';
+  document.getElementById('extractPanel').style.display = 'none';
+  testStepResponses = [];
   document.getElementById('editModal').style.display = 'flex';
 }
 
@@ -545,8 +599,9 @@ function closeModal() {
 }
 
 function switchTab(el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  const modal = document.getElementById('editModal');
+  modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  modal.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('tab-' + el.dataset.tab).classList.add('active');
 }
@@ -578,6 +633,11 @@ function moveStep(index, dir) {
   renderSteps();
 }
 
+function toggleCollapse(el) {
+  const card = el.closest('.collapse-card');
+  card.classList.toggle('open');
+}
+
 function renderSteps() {
   const container = document.getElementById('stepsContainer');
   if (currentSteps.length === 0) {
@@ -586,58 +646,66 @@ function renderSteps() {
   }
   container.innerHTML = currentSteps.map((step, i) => `
     ${i > 0 ? '<div class="step-connector"></div>' : ''}
-    <div class="step-card">
-      <div class="step-header">
+    <div class="collapse-card open" data-step-idx="${i}">
+      <div class="collapse-header" onclick="toggleCollapse(this)">
         <div style="display:flex;align-items:center;gap:8px">
+          <span class="collapse-arrow">▶</span>
           <span class="step-num">${i + 1}</span>
-          <input type="text" value="${esc(step.name)}" style="width:180px;font-weight:600"
-                 onchange="currentSteps[${i}].name=this.value" placeholder="步骤名称">
+          <span style="font-weight:600;font-size:13px">${esc(step.name || '步骤'+(i+1))}</span>
+          <span class="badge badge-primary" style="font-size:10px">${step.method||'GET'}</span>
+          <span style="font-size:11px;color:var(--text3);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(step.url||'(未配置URL)')}</span>
         </div>
-        <div class="btn-group">
+        <div class="btn-group" onclick="event.stopPropagation()">
           ${i > 0 ? `<button class="btn btn-sm" onclick="moveStep(${i},-1)" title="上移">↑</button>` : ''}
           ${i < currentSteps.length - 1 ? `<button class="btn btn-sm" onclick="moveStep(${i},1)" title="下移">↓</button>` : ''}
           <button class="btn btn-sm btn-danger" onclick="removeStep(${i})">✕</button>
         </div>
       </div>
-
-      <div class="inline" style="margin-bottom:10px">
-        <div class="form-group narrow">
-          <label class="form-label">请求方法</label>
-          <select onchange="currentSteps[${i}].method=this.value">
-            ${['GET','POST','PUT','PATCH','DELETE'].map(m =>
-              `<option value="${m}" ${step.method===m?'selected':''}>${m}</option>`
-            ).join('')}
-          </select>
+      <div class="collapse-body">
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label">步骤名称</label>
+          <input type="text" value="${esc(step.name)}" style="font-weight:600"
+                 onchange="currentSteps[${i}].name=this.value" placeholder="步骤名称">
         </div>
+        <div class="inline" style="margin-bottom:10px">
+          <div class="form-group narrow">
+            <label class="form-label">请求方法</label>
+            <select onchange="currentSteps[${i}].method=this.value">
+              ${['GET','POST','PUT','PATCH','DELETE'].map(m =>
+                `<option value="${m}" ${step.method===m?'selected':''}>${m}</option>`
+              ).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">请求URL</label>
+            <input type="text" value="${esc(step.url)}" onchange="currentSteps[${i}].url=this.value"
+                   placeholder="https://api.example.com/data/{input}">
+          </div>
+        </div>
+
         <div class="form-group">
-          <label class="form-label">请求URL</label>
-          <input type="text" value="${esc(step.url)}" onchange="currentSteps[${i}].url=this.value"
-                 placeholder="https://api.example.com/data/{input}">
+          <label class="form-label">请求头 (Headers)</label>
+          ${renderKVEditor(step.headers, i, 'headers')}
         </div>
-      </div>
 
-      <div class="form-group">
-        <label class="form-label">请求头 (Headers)</label>
-        ${renderKVEditor(step.headers, i, 'headers')}
-      </div>
+        <div class="form-group">
+          <label class="form-label">${step.method === 'GET' ? '查询参数 (Params)' : '请求参数'}</label>
+          ${renderKVEditor(step.params, i, 'params')}
+        </div>
 
-      <div class="form-group">
-        <label class="form-label">${step.method === 'GET' ? '查询参数 (Params)' : '请求参数'}</label>
-        ${renderKVEditor(step.params, i, 'params')}
-      </div>
+        ${step.method !== 'GET' ? `
+        <div class="form-group">
+          <label class="form-label">请求体 (Body JSON)</label>
+          <textarea rows="3" onchange="try{currentSteps[${i}].body=JSON.parse(this.value)}catch(e){}"
+                    placeholder='{"key":"value"}'>${Object.keys(step.body||{}).length ? JSON.stringify(step.body,null,2) : ''}</textarea>
+        </div>` : ''}
 
-      ${step.method !== 'GET' ? `
-      <div class="form-group">
-        <label class="form-label">请求体 (Body JSON)</label>
-        <textarea rows="3" onchange="try{currentSteps[${i}].body=JSON.parse(this.value)}catch(e){}"
-                  placeholder='{"key":"value"}'>${Object.keys(step.body||{}).length ? JSON.stringify(step.body,null,2) : ''}</textarea>
-      </div>` : ''}
-
-      <hr class="divider">
-      <div class="form-group">
-        <label class="form-label">📤 数据提取 — 从响应JSON中提取变量供后续步骤使用</label>
-        <div class="form-hint" style="margin-bottom:6px">左侧填变量名（如 city_id），右侧填JSON路径（如 data.list.0.id）</div>
-        ${renderKVEditor(step.extract, i, 'extract', '变量名', 'JSON路径 (如: data.result.name)')}
+        <hr class="divider">
+        <div class="form-group">
+          <label class="form-label">📤 数据提取 — 从响应JSON中提取变量供后续步骤使用</label>
+          <div class="form-hint" style="margin-bottom:6px">左侧填变量名（如 city_id），右侧填JSON路径（如 data.list.0.id）</div>
+          ${renderKVEditor(step.extract, i, 'extract', '变量名', 'JSON路径 (如: data.result.name)')}
+        </div>
       </div>
     </div>
   `).join('');
@@ -704,6 +772,7 @@ function addRule() {
     field: '',
     template: '',
     ignore: false,
+    step_source: -1,
   });
   renderRules();
 }
@@ -726,45 +795,67 @@ function renderRules() {
     container.innerHTML = '<div class="empty" style="padding:20px"><p style="font-size:13px">暂无响应规则。未匹配任何规则时将返回原始JSON摘要</p></div>';
     return;
   }
-  container.innerHTML = currentRules.map((rule, i) => `
-    <div class="rule-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:13px;font-weight:600;color:var(--primary)">规则 ${i + 1}</span>
-        <div class="btn-group">
+  const stepOptions = currentSteps.map((s,si) =>
+    `<option value="${si}">步骤${si+1}: ${esc(s.name||'未命名')}</option>`
+  ).join('');
+
+  container.innerHTML = currentRules.map((rule, i) => {
+    const src = rule.step_source != null ? rule.step_source : -1;
+    const condPreview = rule.condition ? rule.condition : '(始终匹配)';
+    return `
+    <div class="collapse-card open">
+      <div class="collapse-header" onclick="toggleCollapse(this)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="collapse-arrow">▶</span>
+          <span style="font-size:13px;font-weight:600;color:var(--primary)">规则 ${i + 1}</span>
+          <span style="font-size:11px;color:var(--text3)">${esc(condPreview)}</span>
+          ${rule.ignore ? '<span class="badge badge-warning">静默</span>' : ''}
+        </div>
+        <div class="btn-group" onclick="event.stopPropagation()">
           ${i > 0 ? `<button class="btn btn-sm" onclick="moveRule(${i},-1)">↑</button>` : ''}
           ${i < currentRules.length - 1 ? `<button class="btn btn-sm" onclick="moveRule(${i},1)">↓</button>` : ''}
           <button class="btn btn-sm btn-danger" onclick="removeRule(${i})">✕</button>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">匹配条件 (Python表达式)</label>
-        <input type="text" value="${esc(rule.condition)}"
-               onchange="currentRules[${i}].condition=this.value"
-               placeholder='如: http_code == 200  或  status == "success"'>
-        <div class="form-hint">可用变量: http_code, status, code, 及所有提取的变量。留空表示始终匹配</div>
+      <div class="collapse-body">
+        <div class="form-group">
+          <label class="form-label">数据来源（基于哪个步骤的返回数据判断）</label>
+          <select onchange="currentRules[${i}].step_source=parseInt(this.value)" style="width:auto;min-width:200px">
+            <option value="-1" ${src===-1?'selected':''}>最后一个步骤（默认）</option>
+            ${stepOptions.replace(`value="${src}"`, `value="${src}" selected`)}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">匹配条件 (Python表达式)</label>
+          <input type="text" value="${esc(rule.condition)}"
+                 onchange="currentRules[${i}].condition=this.value"
+                 placeholder='如: http_code == 200  或  status == "success"'>
+          <div class="form-hint">可用变量: http_code, status, code, 及所有提取的变量。留空表示始终匹配</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">回复模板</label>
+          <textarea rows="3" onchange="currentRules[${i}].template=this.value"
+                    placeholder="使用 {变量名} 引用提取的数据，如: 城市: {city}&#10;温度: {temperature}°C">${esc(rule.template)}</textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <label class="switch">
+            <input type="checkbox" ${rule.ignore ? 'checked' : ''}
+                   onchange="currentRules[${i}].ignore=this.checked">
+            <span class="slider"></span>
+          </label>
+          <span style="font-size:12px;color:var(--text2)">静默模式（匹配但不回复）</span>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">回复模板</label>
-        <textarea rows="3" onchange="currentRules[${i}].template=this.value"
-                  placeholder="使用 {变量名} 引用提取的数据，如: 城市: {city}&#10;温度: {temperature}°C">${esc(rule.template)}</textarea>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-        <label class="switch">
-          <input type="checkbox" ${rule.ignore ? 'checked' : ''}
-                 onchange="currentRules[${i}].ignore=this.checked">
-          <span class="slider"></span>
-        </label>
-        <span style="font-size:12px;color:var(--text2)">静默模式（匹配但不回复）</span>
-      </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 // ==================== 保存 ====================
 
 function saveApi() {
   // 收集步骤中的 KV
-  document.querySelectorAll('.step-card').forEach((card, i) => {
+  document.querySelectorAll('.collapse-card[data-step-idx]').forEach((card) => {
+    const i = parseInt(card.dataset.stepIdx);
     ['headers', 'params', 'extract'].forEach(field => {
       rebuildKV(i, field);
     });
@@ -818,128 +909,108 @@ function deleteApi(name) {
   saveAllApis().then(() => renderApiList());
 }
 
-// ==================== 测试 ====================
+// ==================== 测试 (后端代理) ====================
+
+const TEST_REQ_PATH = 'plugins/api_caller/data/test_request.json';
+const TEST_RES_PATH = 'plugins/api_caller/data/test_result.json';
 
 async function runTest() {
   const resultEl = document.getElementById('testResult');
+  const extractPanel = document.getElementById('extractPanel');
   const input = document.getElementById('testInput').value.trim();
 
-  // 收集当前配置
-  document.querySelectorAll('.step-card').forEach((card, i) => {
+  // 收集当前配置中的 KV
+  document.querySelectorAll('.collapse-card[data-step-idx]').forEach(card => {
+    const i = parseInt(card.dataset.stepIdx);
     ['headers', 'params', 'extract'].forEach(field => rebuildKV(i, field));
   });
 
   resultEl.style.display = 'block';
-  resultEl.textContent = '⏳ 正在执行测试...';
+  resultEl.textContent = '⏳ 正在通过后端代理执行测试...';
   resultEl.style.color = 'var(--text2)';
+  extractPanel.style.display = 'none';
+  testStepResponses = [];
 
-  const steps = currentSteps;
-  const rules = currentRules;
-  const now = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
-  const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-  const variables = {
-    input: input,
-    // 系统变量 (浏览器测试用模拟值)
-    user_id: '(测试用户ID)',
-    group_id: '(测试群组ID)',
-    channel_id: '',
-    guild_id: '',
-    username: '(测试用户)',
-    appid: '(测试APPID)',
-    message_id: '',
-    timestamp: String(Math.floor(now.getTime() / 1000)),
-    datetime: `${dateStr} ${timeStr}`,
-    date: dateStr,
-    time: timeStr,
+  // 构造当前编辑中的 API 配置
+  const apiCfg = {
+    trigger: document.getElementById('apiTrigger').value.trim() || '(.+)',
+    steps: currentSteps,
+    rules: currentRules,
+    error_reply: document.getElementById('apiErrorReply').value.trim(),
   };
-  const logs = [];
 
+  // 写入测试请求文件
+  const reqData = { api_cfg: apiCfg, user_input: input };
   try {
-    for (let i = 0; i < steps.length; i++) {
-      const step = steps[i];
-      const url = fillTemplate(step.url, variables);
-      const method = step.method || 'GET';
-
-      // 构建参数
-      const params = {};
-      for (const [k, v] of Object.entries(step.params || {})) {
-        params[k] = fillTemplate(String(v), variables);
-      }
-      const headers = {};
-      for (const [k, v] of Object.entries(step.headers || {})) {
-        headers[k] = fillTemplate(String(v), variables);
-      }
-
-      logs.push(`\n━━━ 步骤${i+1}: ${step.name || '未命名'} ━━━`);
-      logs.push(`${method} ${url}`);
-      if (Object.keys(params).length) logs.push(`参数: ${JSON.stringify(params)}`);
-
-      let fetchUrl = url;
-      if (method === 'GET' && Object.keys(params).length) {
-        const sp = new URLSearchParams(params);
-        fetchUrl += (url.includes('?') ? '&' : '?') + sp.toString();
-      }
-
-      const fetchOpts = { method, headers };
-      if (method !== 'GET' && Object.keys(params).length) {
-        fetchOpts.body = JSON.stringify(params);
-        headers['Content-Type'] = headers['Content-Type'] || 'application/json';
-      }
-
-      const resp = await fetch(fetchUrl, fetchOpts);
-      const httpCode = resp.status;
-      let data;
-      try { data = await resp.json(); } catch(e) { data = { _raw: await resp.text() }; }
-
-      logs.push(`HTTP ${httpCode}`);
-      logs.push(`响应: ${JSON.stringify(data, null, 2).substring(0, 500)}`);
-
-      variables['_http_code'] = httpCode;
-      variables['_response'] = data;
-
-      // 提取
-      for (const [varName, jsonPath] of Object.entries(step.extract || {})) {
-        const val = resolvePath(data, jsonPath);
-        variables[varName] = val;
-        logs.push(`提取 ${varName} = ${JSON.stringify(val)}`);
-      }
-    }
-
-    // 匹配规则
-    logs.push(`\n━━━ 规则匹配 ━━━`);
-    logs.push(`变量池: ${JSON.stringify(variables, null, 2)}`);
-    let matched = false;
-    for (let i = 0; i < rules.length; i++) {
-      const rule = rules[i];
-      const cond = rule.condition || 'true';
-      try {
-        const result = evalCondition(cond, variables);
-        if (result) {
-          logs.push(`✅ 规则${i+1} 匹配: ${cond}`);
-          if (rule.ignore) {
-            logs.push(`（静默模式，不回复）`);
-          } else {
-            const reply = fillTemplate(rule.template || '', variables);
-            logs.push(`回复内容:\n${reply}`);
-          }
-          matched = true;
-          break;
-        } else {
-          logs.push(`❌ 规则${i+1} 不匹配: ${cond}`);
-        }
-      } catch(e) {
-        logs.push(`⚠️ 规则${i+1} 评估出错: ${e.message}`);
-      }
-    }
-    if (!matched) logs.push('⚠️ 未匹配任何规则，将返回原始JSON摘要');
-
-    resultEl.style.color = 'var(--success)';
-    resultEl.textContent = logs.join('\n');
+    await apiCall('/api/config-file/save', 'POST', {
+      path: TEST_REQ_PATH,
+      content: JSON.stringify(reqData, null, 2),
+      format: 'json'
+    });
   } catch(e) {
     resultEl.style.color = 'var(--danger)';
-    resultEl.textContent = logs.join('\n') + `\n\n❌ 执行出错: ${e.message}`;
+    resultEl.textContent = '❌ 无法写入测试请求: ' + e.message;
+    return;
+  }
+
+  // 轮询结果文件 (最多等 30 秒)
+  let result = null;
+  for (let attempt = 0; attempt < 60; attempt++) {
+    await new Promise(r => setTimeout(r, 500));
+    try {
+      const res = await apiCall('/api/config-file/read', 'POST', { path: TEST_RES_PATH });
+      if (res.success) {
+        const parsed = res.parsed || (res.raw ? JSON.parse(res.raw) : null);
+        if (parsed && parsed.ts) {
+          result = parsed;
+          // 清理结果文件
+          await apiCall('/api/config-file/save', 'POST', {
+            path: TEST_RES_PATH, content: '{}', format: 'json'
+          });
+          break;
+        }
+      }
+    } catch(e) { /* 继续轮询 */ }
+  }
+
+  if (!result) {
+    resultEl.style.color = 'var(--danger)';
+    resultEl.textContent = '❌ 测试超时 (30秒)，后端未返回结果。请确认插件已加载。';
+    return;
+  }
+
+  // 显示结果
+  const logs = [];
+  if (result.error) {
+    logs.push(`❌ 执行出错: ${result.error}`);
+  }
+
+  (result.steps || []).forEach((s, i) => {
+    logs.push(`\n━━━ 步骤${i+1}: ${s.name || '未命名'} ━━━`);
+    logs.push(`${s.method} ${s.url}`);
+    logs.push(`HTTP ${s.http_code}`);
+    if (s.error) logs.push(`❌ 错误: ${s.error}`);
+    const respStr = s.response_raw || JSON.stringify(s.response || {}, null, 2);
+    logs.push(`响应: ${respStr.substring(0, 800)}`);
+  });
+
+  if (result.reply) {
+    logs.push(`\n━━━ 最终回复 ━━━`);
+    logs.push(result.reply);
+  }
+
+  if (result.variables && Object.keys(result.variables).length) {
+    logs.push(`\n━━━ 变量池 ━━━`);
+    logs.push(JSON.stringify(result.variables, null, 2));
+  }
+
+  resultEl.style.color = result.success ? 'var(--success)' : 'var(--danger)';
+  resultEl.textContent = logs.join('\n');
+
+  // 保存步骤响应数据用于自动提取
+  testStepResponses = (result.steps || []).map(s => s.response || {});
+  if (testStepResponses.some(r => r && Object.keys(r).length > 0)) {
+    showExtractPanel();
   }
 }
 
@@ -987,6 +1058,122 @@ function evalCondition(condition, variables) {
   } catch(e) {
     return false;
   }
+}
+
+// ==================== 自动提取 ====================
+
+function flattenPaths(obj, prefix='', maxDepth=5) {
+  const paths = [];
+  if (maxDepth <= 0 || obj == null) return paths;
+  if (typeof obj !== 'object') return paths;
+  for (const [k, v] of Object.entries(obj)) {
+    const path = prefix ? prefix + '.' + k : k;
+    if (v != null && typeof v === 'object' && !Array.isArray(v)) {
+      paths.push({ path, value: '{...}', type: 'object' });
+      paths.push(...flattenPaths(v, path, maxDepth - 1));
+    } else if (Array.isArray(v)) {
+      paths.push({ path, value: `[${v.length} 项]`, type: 'array' });
+      if (v.length > 0 && typeof v[0] === 'object' && v[0] !== null) {
+        paths.push(...flattenPaths(v[0], path + '.0', maxDepth - 1));
+      } else if (v.length > 0) {
+        paths.push({ path: path + '.0', value: String(v[0]).substring(0, 80), type: typeof v[0] });
+      }
+    } else {
+      paths.push({ path, value: String(v).substring(0, 80), type: typeof v });
+    }
+  }
+  return paths;
+}
+
+function showExtractPanel() {
+  const panel = document.getElementById('extractPanel');
+  const tree = document.getElementById('extractTree');
+  const stepSel = document.getElementById('extractTargetStep');
+
+  // 填充步骤选择器
+  stepSel.innerHTML = currentSteps.map((s, i) =>
+    `<option value="${i}">步骤${i+1}: ${esc(s.name||'未命名')}</option>`
+  ).join('');
+
+  // 默认选最后一个步骤
+  if (currentSteps.length > 0) stepSel.value = currentSteps.length - 1;
+
+  renderExtractTree();
+  panel.style.display = 'block';
+}
+
+function renderExtractTree() {
+  const tree = document.getElementById('extractTree');
+  const stepIdx = parseInt(document.getElementById('extractTargetStep').value || '0');
+  const data = testStepResponses[stepIdx];
+
+  if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+    tree.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px">该步骤无响应数据</div>';
+    document.getElementById('extractCount').textContent = '';
+    return;
+  }
+
+  const paths = flattenPaths(data);
+  // 获取该步骤已有的 extract 配置
+  const existing = currentSteps[stepIdx]?.extract || {};
+  const existingPaths = new Set(Object.values(existing));
+
+  tree.innerHTML = paths.map((p, i) => {
+    const isLeaf = p.type !== 'object' && p.type !== 'array';
+    const checked = existingPaths.has(p.path) ? 'checked' : '';
+    const indent = (p.path.split('.').length - 1) * 16;
+    return `
+      <div class="extract-item" style="padding-left:${indent}px">
+        <label>
+          <input type="checkbox" value="${esc(p.path)}" ${checked} ${isLeaf ? '' : 'disabled'}
+                 onchange="updateExtractCount()">
+          <code>${esc(p.path)}</code>
+          <span class="val">${isLeaf ? '= ' + esc(p.value) : esc(p.value)}</span>
+        </label>
+      </div>`;
+  }).join('');
+  updateExtractCount();
+}
+
+function updateExtractCount() {
+  const checked = document.querySelectorAll('#extractTree input[type=checkbox]:checked').length;
+  document.getElementById('extractCount').textContent = checked > 0 ? `已选 ${checked} 项` : '';
+}
+
+// 步骤切换时重新渲染
+document.addEventListener('change', e => {
+  if (e.target.id === 'extractTargetStep') renderExtractTree();
+});
+
+function applyExtract() {
+  const stepIdx = parseInt(document.getElementById('extractTargetStep').value || '0');
+  if (stepIdx < 0 || stepIdx >= currentSteps.length) return toast('无效的步骤', 'error');
+
+  const checked = document.querySelectorAll('#extractTree input[type=checkbox]:checked');
+  if (checked.length === 0) return toast('请至少选择一个字段', 'error');
+
+  // 保留已有的 extract，追加新选中的
+  const extract = { ...(currentSteps[stepIdx].extract || {}) };
+  checked.forEach(cb => {
+    const path = cb.value;
+    // 自动生成变量名：取路径最后一段，避免与已有冲突
+    const parts = path.split('.');
+    let varName = parts[parts.length - 1];
+    if (/^\d+$/.test(varName) && parts.length > 1) varName = parts[parts.length - 2] + '_' + varName;
+    // 如果已存在且路径相同则跳过
+    if (extract[varName] === path) return;
+    // 如果变量名已存在但路径不同，加数字后缀
+    let finalName = varName;
+    let suffix = 2;
+    while (extract[finalName] && extract[finalName] !== path) {
+      finalName = varName + '_' + suffix++;
+    }
+    extract[finalName] = path;
+  });
+
+  currentSteps[stepIdx].extract = extract;
+  renderSteps();
+  toast(`已将 ${checked.length} 个字段应用到步骤${stepIdx+1}的数据提取`, 'success');
 }
 
 // ==================== 导入导出 ====================
@@ -1160,7 +1347,8 @@ async function clearAllLogs() {
 
 // ==================== 初始化 ====================
 loadApis();
-loadLogs();
+// 清理残留的测试结果文件
+apiCall('/api/config-file/save', 'POST', { path: TEST_RES_PATH, content: '{}', format: 'json' }).catch(()=>{});
 </script>
 </body>
 </html>
