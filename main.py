@@ -5,6 +5,7 @@ __plugin_meta__ = {
     'author': '洛',
     'description': '可视化API调用插件，支持指令触发、链式请求、条件响应解析',
     'version': '1.0.0',
+    'github': 'https://github.com/xiaoxiao2365/ElainaBot-api',
 }
 
 from core.plugin.decorators import on_load, on_unload
